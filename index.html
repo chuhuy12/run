@@ -2,56 +2,132 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Ban QLRRTH - Quản Lý Chạy Bộ</title>
+  <title>Quản lý Cuộc Chạy Bộ - Strava</title>
   <style>
+    :root {
+      --emerald: #287f75;
+      --emerald-dark: #287f75;
+      --white: #ffffff;
+      --text-dark: #333333;
+      --shadow: rgba(0, 0, 0, 0.1);
+    }
+
     body {
-      background-color: #287f75; /* xanh dương đậm */
-      color: white;
-      font-family: Arial, sans-serif;
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background-color: var(--emerald);
+      color: var(--white);
+    }
+
+    header {
+      padding: 30px 20px;
       text-align: center;
-      padding-top: 100px;
+      background-color: #287f75;
     }
 
     h1 {
+      margin: 0;
       font-size: 32px;
-      margin-bottom: 40px;
     }
 
-    button {
-      background-color: #fc4c02; /* màu cam Strava */
+    .section {
+      background-color: var(--white);
+      color: var(--text-dark);
+      max-width: 1000px;
+      margin: 30px auto;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+
+    .section h2 {
+      text-align: center;
+      margin-top: 0;
+      color: #287f75;
+    }
+
+    .btn-strava {
+      display: inline-block;
+      background-color: #fc4c02;
       color: white;
-      border: none;
-      padding: 15px 30px;
+      padding: 14px 28px;
       font-size: 16px;
-      cursor: pointer;
-      border-radius: 4px;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: bold;
+      transition: background-color 0.3s;
     }
 
-    button:hover {
+    .btn-strava:hover {
       background-color: #e04300;
+    }
+
+    .dashboard {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .card {
+      background-color: var(--emerald);
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 200px;
+      text-align: center;
+      box-shadow: 0 2px 10px var(--shadow);
+    }
+
+    .card h3 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    .card p {
+      font-size: 28px;
+      margin: 10px 0 0 0;
+      font-weight: bold;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 14px;
+      color: #e0f8eb;
     }
   </style>
 </head>
 <body>
-  <h1>Ban QLRRTH - Trang Quản Lý Chạy Bộ</h1>
 
-  <button onclick="connectToStrava()">Kết nối với Strava</button>
+  <!-- HEADER -->
+  <header>
+    <h1>🏃‍♂️ Ban QLRRTH - Quản lý Chạy Bộ</h1>
+  </header>
 
-  <script type="text/javascript">
-    function connectToStrava() {
-      var clientId = 108281; // ← Thay bằng client ID thực tế của Strava
-      var redirectUri = encodeURIComponent('https://script.google.com/macros/s/AKfycbzTO22nLbMSkLdUzC0Tr-u5gLq6VLOn4n93hOlcLtoxISHS4aBIbRPnhV6OZOtNWHLwHg/exec'); // ← URL callback của bạn
-      var scope = 'profile:read_all,activity:read_all';
+  <div class="container">
+    <p style="text-align: center;">
+      Nhấn vào nút bên dưới để kết nối với tài khoản Strava của bạn và đồng bộ dữ liệu hoạt động chạy bộ.
+    </p>
+    <div style="text-align: center; margin-top: 20px;">
+      <a class="btn-strava"
+         href="http://www.strava.com/oauth/authorize?client_id=108281&response_type=code&redirect_uri=https://script.google.com/macros/s/AKfycbzTO22nLbMSkLdUzC0Tr-u5gLq6VLOn4n93hOlcLtoxISHS4aBIbRPnhV6OZOtNWHLwHg/exec&approval_prompt=force&scope=profile:read_all,activity:read_all">
+         Đăng nhập bằng Strava
+      </a>
+    </div>
+  </div>
 
-      var authUrl = 'https://www.strava.com/oauth/authorize' +
-        '?client_id=' + clientId +
-        '&response_type=code' +
-        '&redirect_uri=' + redirectUri +
-        '&approval_prompt=auto' +
-        '&scope=' + scope;
+  <footer>
+    &copy; 2025 Ban QLRRTH· 💚 · Powered by Strava
+  </footer>
 
-      window.location.href = authUrl;
-    }
+  <script>
+    // Sau khi kết nối Strava thành công, bạn có thể cập nhật các chỉ số bằng API
+    // Ví dụ:
+    // document.getElementById('runCount').innerText = actualData.total_runs;
   </script>
+
 </body>
 </html>
