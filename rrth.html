@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Supabase Multi-Table Viewer</title>
+<!--  <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script> -->
+  <script src="xlsx.full.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    button { padding: 8px 12px; margin: 10px 0; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background-color: #f2f2f2; cursor: pointer; }
+
+    .tabs button {
+      padding: 10px;
+      margin-right: 5px;
+      border: 1px solid #ccc;
+      background-color: #eee;
+      cursor: pointer;
+    }
+
+    .tabs button.active {
+      background-color: #ddd;
+      font-weight: bold;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+<h2>RRTH activities</h2>
+
+<div class="tabs">
+  <button class="tab-button active" data-tab="table1">Current Week</button>
+  <button class="tab-button" data-tab="table2">Last Week</button>
+</div>
+
+<!-- Tab 1 -->
+<div class="tab-content active" id="table1">
+  <button onclick="exportToExcel('table1-data', 'current_week')">Export data current week to Excel</button>
+  <table id="table1-data">
+    <thead><tr></tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<!-- Tab 2 -->
+<div class="tab-content" id="table2">
+  <button onclick="exportToExcel('table2-data', 'last_week')">Export Data last week to Excel</button>
+  <table id="table2-data">
+    <thead><tr></tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://gunwsbbzgagizxxystdq.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1bndzYmJ6Z2FnaXp4eHlzdGRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1Nzk0MDYsImV4cCI6MjA2ODE1NTQwNn0.CIFTxv6lmDTGnSIu2IZcVfkPtGMc-r4c1pRm34Pkixo';
+
+  const TABLES = [
+    { id: 'table1', name: 'v_rrth_data_current_week' }, // change to your real table name
+    { id: 'table2', name: 'v_rrth_data_last_week' }  // change to your real table name
+  ];
+
+  // Fetch and populate both tables
+  TABLES.forEach(({ id, name }) => {
+    fetch(`${SUPABASE_URL}/rest/v1/${name}?select=*`, {
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+      }
+    })
+    .then(res => res.json())
+    .then(data => renderTable(id, data))
+    .catch(err => console.error(`Error fetching ${name}:`, err));
+  });
+
+  function renderTable(containerId, data) {
+    const table = document.getElementById(`${containerId}-data`);
+    const thead = table.querySelector('thead tr');
+    const tbody = table.querySelector('tbody');
+    thead.innerHTML = '';
+    tbody.innerHTML = '';
+
+    if (!data || data.length === 0) {
+      thead.innerHTML = '<th>No data found</th>';
+      return;
+    }
+
+    // Table headers
+    Object.keys(data[0]).forEach((key, i) => {
+      const th = document.createElement('th');
+      th.textContent = key;
+      th.onclick = () => sortTable(`${containerId}-data`, i);
+      thead.appendChild(th);
+    });
+
+    // Table rows
+    data.forEach(row => {
+      const tr = document.createElement('tr');
+      Object.values(row).forEach(val => {
+        const td = document.createElement('td');
+        td.textContent = val !== null ? val : '';
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+  }
+
+  function sortTable(tableId, columnIndex) {
+    const table = document.getElementById(tableId);
+    const rows = Array.from(table.rows).slice(1);
+    let switching = true;
+    let dir = 'asc';
+
+    while (switching) {
+      switching = false;
+      for (let i = 0; i < rows.length - 1; i++) {
+        const x = rows[i].cells[columnIndex].innerText.toLowerCase();
+        const y = rows[i + 1].cells[columnIndex].innerText.toLowerCase();
+        const shouldSwitch = (dir === 'asc' && x > y) || (dir === 'desc' && x < y);
+        if (shouldSwitch) {
+          rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+          switching = true;
+          break;
+        }
+      }
+      if (!switching && dir === 'asc') {
+        dir = 'desc';
+        switching = true;
+      }
+    }
+  }
+
+  function exportToExcel(tableId, filename) {
+    const table = document.getElementById(tableId);
+    const wb = XLSX.utils.table_to_book(table, { sheet: "Sheet1" });
+    XLSX.writeFile(wb, `${filename}.xlsx`);
+  }
+
+  // Tab switching logic
+  const tabButtons = document.querySelectorAll('.tab-button');
+  const tabContents = document.querySelectorAll('.tab-content');
+
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabButtons.forEach(b => b.classList.remove('active'));
+      tabContents.forEach(tc => tc.classList.remove('active'));
+
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>
