@@ -1,165 +1,428 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>RRTH activities</title>
-<!--  <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script> -->
-  <script src="xlsx.full.min.js"></script>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    button { padding: 8px 12px; margin: 10px 0; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background-color: #f2f2f2; cursor: pointer; }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Running Dashboard</title>
+<script src="xlsx.full.min.js"></script>
+<style>
+  body {
+    margin: 0; padding: 20px; font-family: Arial, sans-serif;
+    background-color: #287f75;
 
-    .tabs button {
-      padding: 10px;
-      margin-right: 5px;
-      border: 1px solid #ccc;
-      background-color: #eee;
-      cursor: pointer;
-    }
-
-    .tabs button.active {
-      background-color: #ddd;
-      font-weight: bold;
-    }
-
-    .tab-content {
-      display: none;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
-  </style>
+    background-size: cover;
+    background-attachment: fixed;
+    color: #fff;
+  }
+  .container {
+    max-width: 1200px;
+    margin: auto;
+    background: rgba(255,255,255,0.95);
+    border-radius: 8px;
+    padding: 20px;
+    color: #000;
+  }
+  h1, h2 {
+    text-align: center;
+    color: #287f75;
+  }
+  select[multiple] {
+    width: 100%;
+    height: 120px;
+    margin-bottom: 15px;
+    font-size: 14px;
+  }
+  .tables, .pivots {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+  .table-wrapper {
+    flex: 1 1 48%;
+    display: flex;
+    flex-direction: column;
+  }
+  .scrollable {
+    max-height: 300px;
+    overflow: auto;
+    border: 1px solid #ccc;
+    background: #fff;
+    border-radius: 5px;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 700px;
+  }
+  th, td {
+    border: 1px solid #ccc;
+    padding: 6px 10px;
+    text-align: left;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  th.sortable {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    background: #e2f0f1;
+  }
+  th.sortable:hover {
+    background: #c3e3e1;
+  }
+  th .sort-arrow {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    font-size: 10px;
+    transform: translateY(-50%);
+    opacity: 0.5;
+  }
+  th input {
+    margin-top: 4px;
+    width: 90%;
+    box-sizing: border-box;
+  }
+  button {
+    margin-top: 8px;
+    padding: 8px 16px;
+    border: none;
+    background-color: #287f75;
+    color: white;
+    cursor: pointer;
+    border-radius: 4px;
+    align-self: flex-start;
+  }
+  button:hover {
+    background-color: #1f6159;
+  }
+  label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+  }
+</style>
 </head>
 <body>
+<div class="container">
+  <h1>🏃 Running Dashboard</h1>
 
-<h2>RRTH activities</h2>
+  <label for="dimensionSelect">Select Pivot Table Dimensions (multiple):</label>
+  <select id="dimensionSelect" multiple>
+    <option value="athleteId">Athlete ID</option>
+    <option value="username">Username</option>
+    <option value="firstname">First Name</option>
+    <option value="lastname">Last Name</option>
+    <option value="type">Type</option>
+    <option value="sport_type">Sport Type</option>
+    <option value="start_date_local">Start Date</option>
+  </select>
 
-<div class="tabs">
-  <button class="tab-button active" data-tab="table1">Current Week</button>
-  <button class="tab-button" data-tab="table2">Last Week</button>
-</div>
+  <div class="tables">
+    <div class="table-wrapper">
+      <h2>Data Current Week</h2>
+      <button onclick="exportTableToExcel('table1', 'CurrentWeek.xlsx')">Export Current Week to Excel</button>
+      <div class="scrollable">
+        <table id="table1">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <h2>Data Last Week</h2>
+      <button onclick="exportTableToExcel('table2', 'LastWeek.xlsx')">Export Last Week to Excel</button>
+      <div class="scrollable">
+        <table id="table2">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
-<!-- Tab 1 -->
-<div class="tab-content active" id="table1">
-  <button onclick="exportToExcel('table1-data', 'current_week')">Export data current week to Excel</button>
-  <table id="table1-data">
-    <thead><tr></tr></thead>
-    <tbody></tbody>
-  </table>
-</div>
-
-<!-- Tab 2 -->
-<div class="tab-content" id="table2">
-  <button onclick="exportToExcel('table2-data', 'last_week')">Export Data last week to Excel</button>
-  <table id="table2-data">
-    <thead><tr></tr></thead>
-    <tbody></tbody>
-  </table>
+  <div class="pivots" style="margin-top: 40px;">
+    <div class="table-wrapper">
+      <h2>Pivot Table Current Week</h2>
+      <button onclick="exportTableToExcel('pivot1', 'pivot_dataCurrentWeek.xlsx')">Export Pivot Current Week to Excel</button>
+      <div class="scrollable">
+        <table id="pivot1">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <h2>Pivot Table Last Week</h2>
+      <button onclick="exportTableToExcel('pivot2', 'pivot_dataLastWeek.xlsx')">Export Pivot Last Week to Excel</button>
+      <div class="scrollable">
+        <table id="pivot2">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
-  const SUPABASE_URL = 'https://gunwsbbzgagizxxystdq.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1bndzYmJ6Z2FnaXp4eHlzdGRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1Nzk0MDYsImV4cCI6MjA2ODE1NTQwNn0.CIFTxv6lmDTGnSIu2IZcVfkPtGMc-r4c1pRm34Pkixo';
+  // Replace with your Supabase API URLs and anon key
+  const API1 = 'https://gunwsbbzgagizxxystdq.supabase.co/rest/v1/v_rrth_data_current_week?select=*';
+  const API2 = 'https://gunwsbbzgagizxxystdq.supabase.co/rest/v1/v_rrth_data_last_week?select=*';
+  const API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1bndzYmJ6Z2FnaXp4eHlzdGRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1Nzk0MDYsImV4cCI6MjA2ODE1NTQwNn0.CIFTxv6lmDTGnSIu2IZcVfkPtGMc-r4c1pRm34Pkixo';
 
-  const TABLES = [
-    { id: 'table1', name: 'v_rrth_data_current_week' }, // change to your real table name
-    { id: 'table2', name: 'v_rrth_data_last_week' }  // change to your real table name
+  const fields = [
+    "athleteId","username","firstname","lastname","type","sport_type",
+    "start_date_local","distance","moving_time","elapsed_time","average_speed","max_speed"
   ];
 
-  // Fetch and populate both tables
-  TABLES.forEach(({ id, name }) => {
-    fetch(`${SUPABASE_URL}/rest/v1/${name}?select=*`, {
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-      }
-    })
-    .then(res => res.json())
-    .then(data => renderTable(id, data))
-    .catch(err => console.error(`Error fetching ${name}:`, err));
-  });
+  let data1 = [];
+  let data2 = [];
 
-  function renderTable(containerId, data) {
-    const table = document.getElementById(`${containerId}-data`);
-    const thead = table.querySelector('thead tr');
-    const tbody = table.querySelector('tbody');
-    thead.innerHTML = '';
-    tbody.innerHTML = '';
+  let sortState = {
+    table1: { col: null, asc: true },
+    table2: { col: null, asc: true }
+  };
 
-    if (!data || data.length === 0) {
-      thead.innerHTML = '<th>No data found</th>';
-      return;
+  let filters = {
+    table1: {},
+    table2: {}
+  };
+
+  let pivotFilters = {
+    pivot1: {},
+    pivot2: {}
+  };
+
+  async function fetchSupabaseData(url) {
+    try {
+      const res = await fetch(url, {
+        headers: {
+          apikey: API_KEY,
+          Authorization: 'Bearer ' + API_KEY,
+        },
+      });
+      if (!res.ok) throw new Error('Fetch error: ' + res.status);
+      return await res.json();
+    } catch (e) {
+      alert('Failed to fetch data: ' + e.message);
+      return [];
     }
+  }
 
-    // Table headers
-    Object.keys(data[0]).forEach((key, i) => {
+  function renderTableHeader(tableId, container, filterObj) {
+    container.innerHTML = '';
+    const tr = document.createElement('tr');
+    const filterTr = document.createElement('tr');
+
+    fields.forEach(field => {
+      // Header with sorting
       const th = document.createElement('th');
-      th.textContent = key;
-      th.onclick = () => sortTable(`${containerId}-data`, i);
-      thead.appendChild(th);
+      th.textContent = field;
+      th.classList.add('sortable');
+      th.onclick = () => handleSort(tableId, field);
+      const arrow = document.createElement('span');
+      arrow.className = 'sort-arrow';
+      if (sortState[tableId].col === field) {
+        arrow.textContent = sortState[tableId].asc ? '▲' : '▼';
+      } else {
+        arrow.textContent = '⇅';
+      }
+      th.appendChild(arrow);
+      tr.appendChild(th);
+
+      // Filter inputs row
+      const filterTh = document.createElement('th');
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = filterObj[field] || '';
+      input.placeholder = 'Filter';
+      input.oninput = e => {
+        filters[tableId][field] = e.target.value.toLowerCase();
+        applyFiltersAndRender(tableId);
+      };
+      filterTh.appendChild(input);
+      filterTr.appendChild(filterTh);
     });
 
-    // Table rows
-    data.forEach(row => {
+    container.appendChild(tr);
+    container.appendChild(filterTr);
+  }
+
+  function applyFiltersAndRender(tableId) {
+    const sourceData = tableId === 'table1' ? data1 : data2;
+    let filtered = sourceData.filter(row => {
+      return Object.entries(filters[tableId]).every(([field, val]) => {
+        if (!val) return true;
+        const cellVal = row[field];
+        return cellVal && cellVal.toString().toLowerCase().includes(val);
+      });
+    });
+    if (sortState[tableId].col) {
+      filtered.sort((a, b) => {
+        const col = sortState[tableId].col;
+        const asc = sortState[tableId].asc ? 1 : -1;
+        let va = a[col] || '';
+        let vb = b[col] || '';
+        if (typeof va === 'string') va = va.toLowerCase();
+        if (typeof vb === 'string') vb = vb.toLowerCase();
+        if (va < vb) return -1 * asc;
+        if (va > vb) return 1 * asc;
+        return 0;
+      });
+    }
+    renderTableBody(tableId, filtered);
+    renderPivotTables();
+  }
+
+  function renderTableBody(tableId, rows) {
+    const tbody = document.querySelector(`#${tableId} tbody`);
+    tbody.innerHTML = '';
+    rows.forEach(row => {
       const tr = document.createElement('tr');
-      Object.values(row).forEach(val => {
-        const td = document.createElement('td');
-        td.textContent = val !== null ? val : '';
-        tr.appendChild(td);
+      fields.forEach(f => {
+        let val = row[f];
+        if (f === 'start_date_local' && val) {
+          val = new Date(val).toLocaleString();
+        }
+        if (['distance','average_speed','max_speed'].includes(f) && val !== undefined && val !== null) {
+          val = Number(val).toFixed(2);
+        }
+        tr.appendChild(document.createElement('td')).textContent = val ?? '';
       });
       tbody.appendChild(tr);
     });
   }
 
-  function sortTable(tableId, columnIndex) {
-    const table = document.getElementById(tableId);
-    const rows = Array.from(table.rows).slice(1);
-    let switching = true;
-    let dir = 'asc';
+  function handleSort(tableId, col) {
+    if (sortState[tableId].col === col) {
+      sortState[tableId].asc = !sortState[tableId].asc;
+    } else {
+      sortState[tableId].col = col;
+      sortState[tableId].asc = true;
+    }
+    applyFiltersAndRender(tableId);
+    // re-render header to update arrows
+    const thead = document.querySelector(`#${tableId} thead`);
+    renderTableHeader(tableId, thead, filters[tableId]);
+  }
 
-    while (switching) {
-      switching = false;
-      for (let i = 0; i < rows.length - 1; i++) {
-        const x = rows[i].cells[columnIndex].innerText.toLowerCase();
-        const y = rows[i + 1].cells[columnIndex].innerText.toLowerCase();
-        const shouldSwitch = (dir === 'asc' && x > y) || (dir === 'desc' && x < y);
-        if (shouldSwitch) {
-          rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-          switching = true;
-          break;
-        }
-      }
-      if (!switching && dir === 'asc') {
-        dir = 'desc';
-        switching = true;
-      }
+  function renderPivotTables() {
+    renderPivot('pivot1', data1);
+    renderPivot('pivot2', data2);
+  }
+
+  function renderPivot(tableId, sourceData) {
+    const dims = Array.from(document.getElementById('dimensionSelect').selectedOptions).map(opt => opt.value);
+    const pivotTable = document.getElementById(tableId);
+    const thead = pivotTable.querySelector('thead');
+    const tbody = pivotTable.querySelector('tbody');
+    thead.innerHTML = '';
+    tbody.innerHTML = '';
+
+    if (!dims.length) {
+      thead.innerHTML = `<tr><th style="color:#287f75;">Select dimensions above to build pivot</th></tr>`;
+      return;
+    }
+
+    // Header row
+    const headerRow = document.createElement('tr');
+    dims.forEach(d => {
+      const th = document.createElement('th');
+      th.textContent = d;
+      th.style.backgroundColor = '#287f75';
+      th.style.color = 'white';
+      headerRow.appendChild(th);
+    });
+    const aggTh = document.createElement('th');
+    aggTh.textContent = 'Total Distance (km)';
+    aggTh.style.backgroundColor = '#287f75';
+    aggTh.style.color = 'white';
+    headerRow.appendChild(aggTh);
+    thead.appendChild(headerRow);
+
+    // Filter inputs row for pivot table
+    const filterRow = document.createElement('tr');
+    dims.forEach(d => {
+      const filterTh = document.createElement('th');
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.placeholder = 'Filter';
+      input.value = pivotFilters[tableId][d] || '';
+      input.oninput = e => {
+        pivotFilters[tableId][d] = e.target.value.toLowerCase();
+        renderPivot(tableId, sourceData);
+      };
+      filterTh.appendChild(input);
+      filterRow.appendChild(filterTh);
+    });
+    // Empty cell for aggregate column filter
+    filterRow.appendChild(document.createElement('th'));
+    thead.appendChild(filterRow);
+
+    // Aggregate data grouped by dims with pivotFilters applied
+    const agg = {};
+    sourceData.forEach(r => {
+      const passFilters = dims.every(d => {
+        const filterVal = pivotFilters[tableId][d];
+        if (!filterVal) return true;
+        const val = r[d] ? r[d].toString().toLowerCase() : '';
+        return val.includes(filterVal);
+      });
+      if (!passFilters) return;
+
+      const key = dims.map(d => r[d] ?? 'N/A').join('||');
+      agg[key] = (agg[key] || 0) + (Number(r.distance) || 0);
+    });
+
+    for (const [key, totalDist] of Object.entries(agg)) {
+      const tr = document.createElement('tr');
+      key.split('||').forEach(v => {
+        const td = document.createElement('td');
+        td.textContent = v;
+        tr.appendChild(td);
+      });
+      const distTd = document.createElement('td');
+      distTd.textContent = (totalDist / 1000).toFixed(2);
+      tr.appendChild(distTd);
+      tbody.appendChild(tr);
     }
   }
 
-  function exportToExcel(tableId, filename) {
+  function exportTableToExcel(tableId, filename) {
     const table = document.getElementById(tableId);
-    const wb = XLSX.utils.table_to_book(table, { sheet: "Sheet1" });
-    XLSX.writeFile(wb, `${filename}.xlsx`);
+    if (!table) {
+      alert('Table not found!');
+      return;
+    }
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.table_to_sheet(table);
+    XLSX.utils.book_append_sheet(wb, ws, tableId);
+    XLSX.writeFile(wb, filename);
   }
 
-  // Tab switching logic
-  const tabButtons = document.querySelectorAll('.tab-button');
-  const tabContents = document.querySelectorAll('.tab-content');
-
-  tabButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      tabButtons.forEach(b => b.classList.remove('active'));
-      tabContents.forEach(tc => tc.classList.remove('active'));
-
-      btn.classList.add('active');
-      document.getElementById(btn.dataset.tab).classList.add('active');
-    });
+  document.getElementById('dimensionSelect').addEventListener('change', () => {
+    renderPivotTables();
   });
-</script>
 
+  async function init() {
+    data1 = await fetchSupabaseData(API1);
+    data2 = await fetchSupabaseData(API2);
+
+    pivotFilters.pivot1 = {};
+    pivotFilters.pivot2 = {};
+
+    renderTableHeader('table1', document.querySelector('#table1 thead'), filters.table1);
+    renderTableHeader('table2', document.querySelector('#table2 thead'), filters.table2);
+
+    applyFiltersAndRender('table1');
+    applyFiltersAndRender('table2');
+
+    renderPivotTables();
+  }
+
+  init();
+</script>
 </body>
 </html>
