@@ -1,428 +1,265 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Running Dashboard</title>
-<script src="xlsx.full.min.js"></script>
-<style>
-  body {
-    margin: 0; padding: 20px; font-family: Arial, sans-serif;
-    background-color: #287f75;
+  <meta charset="UTF-8" />
+  <title>Running Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    background-size: cover;
-    background-attachment: fixed;
-    color: #fff;
-  }
-  .container {
-    max-width: 1200px;
-    margin: auto;
-    background: rgba(255,255,255,0.95);
-    border-radius: 8px;
-    padding: 20px;
-    color: #000;
-  }
-  h1, h2 {
-    text-align: center;
-    color: #287f75;
-  }
-  select[multiple] {
-    width: 100%;
-    height: 120px;
-    margin-bottom: 15px;
-    font-size: 14px;
-  }
-  .tables, .pivots {
-    display: flex;
-    gap: 30px;
-    flex-wrap: wrap;
-    justify-content: space-between;
-  }
-  .table-wrapper {
-    flex: 1 1 48%;
-    display: flex;
-    flex-direction: column;
-  }
-  .scrollable {
-    max-height: 300px;
-    overflow: auto;
-    border: 1px solid #ccc;
-    background: #fff;
-    border-radius: 5px;
-  }
-  table {
-    border-collapse: collapse;
-    width: 100%;
-    min-width: 700px;
-  }
-  th, td {
-    border: 1px solid #ccc;
-    padding: 6px 10px;
-    text-align: left;
-    font-size: 13px;
-    white-space: nowrap;
-  }
-  th.sortable {
-    cursor: pointer;
-    user-select: none;
-    position: relative;
-    background: #e2f0f1;
-  }
-  th.sortable:hover {
-    background: #c3e3e1;
-  }
-  th .sort-arrow {
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    font-size: 10px;
-    transform: translateY(-50%);
-    opacity: 0.5;
-  }
-  th input {
-    margin-top: 4px;
-    width: 90%;
-    box-sizing: border-box;
-  }
-  button {
-    margin-top: 8px;
-    padding: 8px 16px;
-    border: none;
-    background-color: #287f75;
-    color: white;
-    cursor: pointer;
-    border-radius: 4px;
-    align-self: flex-start;
-  }
-  button:hover {
-    background-color: #1f6159;
-  }
-  label {
-    font-weight: bold;
-    display: block;
-    margin-bottom: 5px;
-  }
-</style>
+  <!-- Bootstrap CSS -->
+  <link
+    href="bootstrap.min.css"
+    rel="stylesheet"
+  />
+
+  <!-- jQuery + jQuery UI (for PivotTable) -->
+  <script src="jquery-3.6.0.min.js"></script>
+  <link
+    rel="stylesheet"
+    href="jquery-ui.css"
+  />
+  <script src="jquery-ui.min.js"></script>
+
+  <!-- PivotTable.js -->
+  <link
+    rel="stylesheet"
+    href="pivot.min.css"
+  />
+  <script src="pivot.min.js"></script>
+
+  <!-- DataTables -->
+  <link
+    rel="stylesheet"
+    href="jquery.dataTables.min.css"
+  />
+  <script src="jquery.dataTables.min.js"></script>
+
+  <!-- SheetJS -->
+  <script src="xlsx.full.min.js"></script>
+
+  <style>
+    body {
+      background-color: #287f75;
+      color: white;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 20px 0 50px 0;
+    }
+    .container {
+      max-width: 100%;
+      margin: 0 auto;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .section {
+      background: white;
+      color: black;
+      border-radius: 8px;
+      padding: 15px 20px;
+      margin-bottom: 40px;
+      width: 95%;
+      margin-left: auto;
+      margin-right: auto;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    .section h4 {
+      margin-bottom: 12px;
+    }
+    .filter-input {
+      margin-bottom: 10px;
+    }
+    /* Pivot table container with fixed height */
+    #pivotTableCurrentWeek,
+    #pivotTableLastWeek {
+      height: 40vh;
+      overflow: auto;
+    }
+    /* DataTables wrapper with fixed height and scroll */
+    .table-wrapper {
+      max-height: 40vh;
+      overflow-y: auto;
+    }
+    table.dataTable thead th {
+      cursor: pointer;
+    }
+    table caption {
+      caption-side: top;
+      font-weight: bold;
+      font-size: 1.2em;
+      padding-bottom: 8px;
+      color: #287f75;
+    }
+    button.export-btn {
+      margin-top: 10px;
+    }
+  </style>
 </head>
 <body>
-<div class="container">
-  <h1>🏃 Running Dashboard</h1>
+  <div class="container">
+    <h2>🏃‍♂️ Running Dashboard</h2>
 
-  <label for="dimensionSelect">Select Pivot Table Dimensions (multiple):</label>
-  <select id="dimensionSelect" multiple>
-    <option value="athleteId">Athlete ID</option>
-    <option value="username">Username</option>
-    <option value="firstname">First Name</option>
-    <option value="lastname">Last Name</option>
-    <option value="type">Type</option>
-    <option value="sport_type">Sport Type</option>
-    <option value="start_date_local">Start Date</option>
-  </select>
-
-  <div class="tables">
-    <div class="table-wrapper">
-      <h2>Data Current Week</h2>
-      <button onclick="exportTableToExcel('table1', 'CurrentWeek.xlsx')">Export Current Week to Excel</button>
-      <div class="scrollable">
-        <table id="table1">
-          <thead></thead>
-          <tbody></tbody>
+    <!-- Data Table 1 -->
+    <section class="section">
+      <h4>Tuần hiện tại</h4>
+      <input
+        type="text"
+        id="dataFilter1"
+        class="form-control filter-input"
+        placeholder="Filter Data Tuần hiện tại..."
+      />
+      <div class="table-wrapper">
+        <table id="dataTableCurrentWeek" class="display" width="100%">
+          <caption>Athlete Activities</caption>
         </table>
       </div>
-    </div>
-    <div class="table-wrapper">
-      <h2>Data Last Week</h2>
-      <button onclick="exportTableToExcel('table2', 'LastWeek.xlsx')">Export Last Week to Excel</button>
-      <div class="scrollable">
-        <table id="table2">
-          <thead></thead>
-          <tbody></tbody>
+      <button class="btn btn-secondary export-btn" onclick="exportTableToExcel('dataTableCurrentWeek')">
+        Export Excel
+      </button>
+    </section>
+
+    <!-- Data Table 2 -->
+    <section class="section">
+      <h4>Tuần trước</h4>
+      <input
+        type="text"
+        id="dataFilter2"
+        class="form-control filter-input"
+        placeholder="Filter Data Tuần trước..."
+      />
+      <div class="table-wrapper">
+        <table id="dataTableLastWeek" class="display" width="100%">
+          <caption>Athlete Activities</caption>
         </table>
       </div>
-    </div>
+      <button class="btn btn-secondary export-btn" onclick="exportTableToExcel('dataTableLastWeek')">
+        Export Excel
+      </button>
+    </section>
+
+    <!-- Pivot Table 1 -->
+    <section class="section">
+      <h4>Pivot Table - Tuần hiện tại</h4>
+      <input
+        type="text"
+        id="pivotFilter1"
+        class="form-control filter-input"
+        placeholder="Filter Pivot Table Tuần hiện tại..."
+      />
+      <div id="pivotTableCurrentWeek"></div>
+      <button class="btn btn-secondary export-btn" onclick="exportPivot('pivotTableCurrentWeek')">
+        Export Excel
+      </button>
+    </section>
+
+    <!-- Pivot Table 2 -->
+    <section class="section">
+      <h4>Pivot Table - Tuần trước</h4>
+      <input
+        type="text"
+        id="pivotFilter2"
+        class="form-control filter-input"
+        placeholder="Filter Pivot Table 2..."
+      />
+      <div id="pivotTableLastWeek"></div>
+      <button class="btn btn-secondary export-btn" onclick="exportPivot('pivotTableLastWeek')">
+        Export Excel
+      </button>
+    </section>
+
   </div>
 
-  <div class="pivots" style="margin-top: 40px;">
-    <div class="table-wrapper">
-      <h2>Pivot Table Current Week</h2>
-      <button onclick="exportTableToExcel('pivot1', 'pivot_dataCurrentWeek.xlsx')">Export Pivot Current Week to Excel</button>
-      <div class="scrollable">
-        <table id="pivot1">
-          <thead></thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
-    <div class="table-wrapper">
-      <h2>Pivot Table Last Week</h2>
-      <button onclick="exportTableToExcel('pivot2', 'pivot_dataLastWeek.xlsx')">Export Pivot Last Week to Excel</button>
-      <div class="scrollable">
-        <table id="pivot2">
-          <thead></thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-  // Replace with your Supabase API URLs and anon key
+  <script>
+    // YOUR Supabase API info here:
   const API1 = 'https://gunwsbbzgagizxxystdq.supabase.co/rest/v1/v_rrth_data_current_week?select=*';
   const API2 = 'https://gunwsbbzgagizxxystdq.supabase.co/rest/v1/v_rrth_data_last_week?select=*';
   const API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1bndzYmJ6Z2FnaXp4eHlzdGRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1Nzk0MDYsImV4cCI6MjA2ODE1NTQwNn0.CIFTxv6lmDTGnSIu2IZcVfkPtGMc-r4c1pRm34Pkixo';
 
-  const fields = [
-    "athleteId","username","firstname","lastname","type","sport_type",
-    "start_date_local","distance","moving_time","elapsed_time","average_speed","max_speed"
-  ];
+    const HEADERS = {
+      apikey: API_KEY,
+      Authorization: "Bearer " + API_KEY,
+    };
 
-  let data1 = [];
-  let data2 = [];
-
-  let sortState = {
-    table1: { col: null, asc: true },
-    table2: { col: null, asc: true }
-  };
-
-  let filters = {
-    table1: {},
-    table2: {}
-  };
-
-  let pivotFilters = {
-    pivot1: {},
-    pivot2: {}
-  };
-
-  async function fetchSupabaseData(url) {
-    try {
-      const res = await fetch(url, {
-        headers: {
-          apikey: API_KEY,
-          Authorization: 'Bearer ' + API_KEY,
-        },
-      });
-      if (!res.ok) throw new Error('Fetch error: ' + res.status);
-      return await res.json();
-    } catch (e) {
-      alert('Failed to fetch data: ' + e.message);
-      return [];
-    }
-  }
-
-  function renderTableHeader(tableId, container, filterObj) {
-    container.innerHTML = '';
-    const tr = document.createElement('tr');
-    const filterTr = document.createElement('tr');
-
-    fields.forEach(field => {
-      // Header with sorting
-      const th = document.createElement('th');
-      th.textContent = field;
-      th.classList.add('sortable');
-      th.onclick = () => handleSort(tableId, field);
-      const arrow = document.createElement('span');
-      arrow.className = 'sort-arrow';
-      if (sortState[tableId].col === field) {
-        arrow.textContent = sortState[tableId].asc ? '▲' : '▼';
-      } else {
-        arrow.textContent = '⇅';
+    // Fetch from Supabase
+    async function fetchData(url) {
+      try {
+        const res = await fetch(url, { headers: HEADERS });
+        if (!res.ok) throw new Error("Network response was not ok");
+        return await res.json();
+      } catch (e) {
+        alert("Fetch error: " + e.message);
+        return [];
       }
-      th.appendChild(arrow);
-      tr.appendChild(th);
-
-      // Filter inputs row
-      const filterTh = document.createElement('th');
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.value = filterObj[field] || '';
-      input.placeholder = 'Filter';
-      input.oninput = e => {
-        filters[tableId][field] = e.target.value.toLowerCase();
-        applyFiltersAndRender(tableId);
-      };
-      filterTh.appendChild(input);
-      filterTr.appendChild(filterTh);
-    });
-
-    container.appendChild(tr);
-    container.appendChild(filterTr);
-  }
-
-  function applyFiltersAndRender(tableId) {
-    const sourceData = tableId === 'table1' ? data1 : data2;
-    let filtered = sourceData.filter(row => {
-      return Object.entries(filters[tableId]).every(([field, val]) => {
-        if (!val) return true;
-        const cellVal = row[field];
-        return cellVal && cellVal.toString().toLowerCase().includes(val);
-      });
-    });
-    if (sortState[tableId].col) {
-      filtered.sort((a, b) => {
-        const col = sortState[tableId].col;
-        const asc = sortState[tableId].asc ? 1 : -1;
-        let va = a[col] || '';
-        let vb = b[col] || '';
-        if (typeof va === 'string') va = va.toLowerCase();
-        if (typeof vb === 'string') vb = vb.toLowerCase();
-        if (va < vb) return -1 * asc;
-        if (va > vb) return 1 * asc;
-        return 0;
-      });
-    }
-    renderTableBody(tableId, filtered);
-    renderPivotTables();
-  }
-
-  function renderTableBody(tableId, rows) {
-    const tbody = document.querySelector(`#${tableId} tbody`);
-    tbody.innerHTML = '';
-    rows.forEach(row => {
-      const tr = document.createElement('tr');
-      fields.forEach(f => {
-        let val = row[f];
-        if (f === 'start_date_local' && val) {
-          val = new Date(val).toLocaleString();
-        }
-        if (['distance','average_speed','max_speed'].includes(f) && val !== undefined && val !== null) {
-          val = Number(val).toFixed(2);
-        }
-        tr.appendChild(document.createElement('td')).textContent = val ?? '';
-      });
-      tbody.appendChild(tr);
-    });
-  }
-
-  function handleSort(tableId, col) {
-    if (sortState[tableId].col === col) {
-      sortState[tableId].asc = !sortState[tableId].asc;
-    } else {
-      sortState[tableId].col = col;
-      sortState[tableId].asc = true;
-    }
-    applyFiltersAndRender(tableId);
-    // re-render header to update arrows
-    const thead = document.querySelector(`#${tableId} thead`);
-    renderTableHeader(tableId, thead, filters[tableId]);
-  }
-
-  function renderPivotTables() {
-    renderPivot('pivot1', data1);
-    renderPivot('pivot2', data2);
-  }
-
-  function renderPivot(tableId, sourceData) {
-    const dims = Array.from(document.getElementById('dimensionSelect').selectedOptions).map(opt => opt.value);
-    const pivotTable = document.getElementById(tableId);
-    const thead = pivotTable.querySelector('thead');
-    const tbody = pivotTable.querySelector('tbody');
-    thead.innerHTML = '';
-    tbody.innerHTML = '';
-
-    if (!dims.length) {
-      thead.innerHTML = `<tr><th style="color:#287f75;">Select dimensions above to build pivot</th></tr>`;
-      return;
     }
 
-    // Header row
-    const headerRow = document.createElement('tr');
-    dims.forEach(d => {
-      const th = document.createElement('th');
-      th.textContent = d;
-      th.style.backgroundColor = '#287f75';
-      th.style.color = 'white';
-      headerRow.appendChild(th);
-    });
-    const aggTh = document.createElement('th');
-    aggTh.textContent = 'Total Distance (km)';
-    aggTh.style.backgroundColor = '#287f75';
-    aggTh.style.color = 'white';
-    headerRow.appendChild(aggTh);
-    thead.appendChild(headerRow);
-
-    // Filter inputs row for pivot table
-    const filterRow = document.createElement('tr');
-    dims.forEach(d => {
-      const filterTh = document.createElement('th');
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.placeholder = 'Filter';
-      input.value = pivotFilters[tableId][d] || '';
-      input.oninput = e => {
-        pivotFilters[tableId][d] = e.target.value.toLowerCase();
-        renderPivot(tableId, sourceData);
-      };
-      filterTh.appendChild(input);
-      filterRow.appendChild(filterTh);
-    });
-    // Empty cell for aggregate column filter
-    filterRow.appendChild(document.createElement('th'));
-    thead.appendChild(filterRow);
-
-    // Aggregate data grouped by dims with pivotFilters applied
-    const agg = {};
-    sourceData.forEach(r => {
-      const passFilters = dims.every(d => {
-        const filterVal = pivotFilters[tableId][d];
-        if (!filterVal) return true;
-        const val = r[d] ? r[d].toString().toLowerCase() : '';
-        return val.includes(filterVal);
+    // Render pivot table
+    function renderPivot(id, data) {
+      $("#" + id).pivotUI(data, {
+        rendererName: "Table",
+        width: "95%",
+        height: "40vh",
       });
-      if (!passFilters) return;
+    }
 
-      const key = dims.map(d => r[d] ?? 'N/A').join('||');
-      agg[key] = (agg[key] || 0) + (Number(r.distance) || 0);
-    });
+    // Export pivot table to Excel
+    function exportPivot(id) {
+      const table = document.querySelector(`#${id} table`);
+      if (!table) {
+        alert("Pivot table not loaded yet.");
+        return;
+      }
+      const wb = XLSX.utils.table_to_book(table);
+      XLSX.writeFile(wb, id + ".xlsx");
+    }
 
-    for (const [key, totalDist] of Object.entries(agg)) {
-      const tr = document.createElement('tr');
-      key.split('||').forEach(v => {
-        const td = document.createElement('td');
-        td.textContent = v;
-        tr.appendChild(td);
+    // Render DataTable with filters and sorting
+    function renderDataTable(tableId, data) {
+      if (!data.length) return;
+
+      const cols = Object.keys(data[0]).map((k) => ({ title: k, data: k }));
+      const table = $(`#${tableId}`).DataTable({
+        data,
+        columns: cols,
+        destroy: true,
+        scrollY: "35vh",
+        scrollCollapse: true,
+        paging: false,
+        order: [],
+        dom: "rt", // Only table (no search/pagination controls)
       });
-      const distTd = document.createElement('td');
-      distTd.textContent = (totalDist / 1000).toFixed(2);
-      tr.appendChild(distTd);
-      tbody.appendChild(tr);
+
+      // Filter input connected to table search
+      $(`#${tableId.replace("dataTable", "dataFilter")}`).off("keyup").on("keyup", function () {
+        table.search(this.value).draw();
+      });
     }
-  }
 
-  function exportTableToExcel(tableId, filename) {
-    const table = document.getElementById(tableId);
-    if (!table) {
-      alert('Table not found!');
-      return;
+    // Export DataTable to Excel
+    function exportTableToExcel(tableId) {
+      const table = document.querySelector(`#${tableId}`);
+      if (!table) {
+        alert("Table not loaded yet.");
+        return;
+      }
+      const wb = XLSX.utils.table_to_book(table);
+      XLSX.writeFile(wb, tableId + ".xlsx");
     }
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.table_to_sheet(table);
-    XLSX.utils.book_append_sheet(wb, ws, tableId);
-    XLSX.writeFile(wb, filename);
-  }
 
-  document.getElementById('dimensionSelect').addEventListener('change', () => {
-    renderPivotTables();
-  });
+    async function initDashboard() {
+      const [data1, data2] = await Promise.all([fetchData(API1), fetchData(API2)]);
 
-  async function init() {
-    data1 = await fetchSupabaseData(API1);
-    data2 = await fetchSupabaseData(API2);
+      // Render pivot tables
+      renderPivot("pivotTableCurrentWeek", data1);
+      renderPivot("pivotTableLastWeek", data2);
 
-    pivotFilters.pivot1 = {};
-    pivotFilters.pivot2 = {};
+      // Render data tables
+      renderDataTable("dataTableCurrentWeek", data1);
+      renderDataTable("dataTableLastWeek", data2);
+    }
 
-    renderTableHeader('table1', document.querySelector('#table1 thead'), filters.table1);
-    renderTableHeader('table2', document.querySelector('#table2 thead'), filters.table2);
-
-    applyFiltersAndRender('table1');
-    applyFiltersAndRender('table2');
-
-    renderPivotTables();
-  }
-
-  init();
-</script>
+    $(document).ready(() => {
+      initDashboard();
+    });
+  </script>
 </body>
 </html>
