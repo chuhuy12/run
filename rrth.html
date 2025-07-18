@@ -1,265 +1,267 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Running Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Running Dashboard</title>
 
   <!-- Bootstrap CSS -->
-  <link
-    href="bootstrap.min.css"
-    rel="stylesheet"
-  />
+  <link href="bootstrap.min.css" rel="stylesheet" />
 
   <!-- jQuery + jQuery UI (for PivotTable) -->
   <script src="jquery-3.6.0.min.js"></script>
-  <link
-    rel="stylesheet"
-    href="jquery-ui.css"
-  />
+  <link rel="stylesheet" href="jquery-ui.css" />
   <script src="jquery-ui.min.js"></script>
 
   <!-- PivotTable.js -->
-  <link
-    rel="stylesheet"
-    href="pivot.min.css"
-  />
+  <link rel="stylesheet" href="pivot.min.css" />
   <script src="pivot.min.js"></script>
 
   <!-- DataTables -->
-  <link
-    rel="stylesheet"
-    href="jquery.dataTables.min.css"
-  />
+  <link rel="stylesheet" href="jquery.dataTables.min.css"/>
   <script src="jquery.dataTables.min.js"></script>
 
   <!-- SheetJS -->
   <script src="xlsx.full.min.js"></script>
 
-  <style>
-    body {
-      background-color: #287f75;
-      color: white;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      margin: 0;
-      padding: 20px 0 50px 0;
-    }
-    .container {
-      max-width: 100%;
-      margin: 0 auto;
-    }
-    h2 {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-    .section {
-      background: white;
-      color: black;
-      border-radius: 8px;
-      padding: 15px 20px;
-      margin-bottom: 40px;
-      width: 95%;
-      margin-left: auto;
-      margin-right: auto;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-    .section h4 {
-      margin-bottom: 12px;
-    }
-    .filter-input {
-      margin-bottom: 10px;
-    }
-    /* Pivot table container with fixed height */
-    #pivotTableCurrentWeek,
-    #pivotTableLastWeek {
-      height: 40vh;
-      overflow: auto;
-    }
-    /* DataTables wrapper with fixed height and scroll */
-    .table-wrapper {
-      max-height: 40vh;
-      overflow-y: auto;
-    }
-    table.dataTable thead th {
-      cursor: pointer;
-    }
-    table caption {
-      caption-side: top;
-      font-weight: bold;
-      font-size: 1.2em;
-      padding-bottom: 8px;
-      color: #287f75;
-    }
-    button.export-btn {
-      margin-top: 10px;
-    }
-  </style>
+<style>
+  body {
+    background-color: #287f75;
+    color: white;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin-bottom: 50px;
+  }
+  .container {
+    margin-top: 20px;
+  }
+  .section {
+    background: white;
+    color: black;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 30px auto;
+    width: 95%;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  }
+  .filter-input {
+    margin-bottom: 10px;
+  }
+  .pivot-container {
+    height: 40vh;
+    overflow-y: auto;
+  }
+  .table-wrapper {
+    max-height: 40vh;
+    overflow-y: auto;
+  }
+  table caption {
+    caption-side: top;
+    font-weight: 600;
+    font-size: 1.2em;
+    padding-bottom: 8px;
+    color: #287f75;
+  }
+  .btn-export {
+    margin-top: 10px;
+  }
+  /* Center row numbers column */
+  th.dt-center, td.dt-center {
+    text-align: center;
+  }
+  /* DataTables row number column */
+  table.dataTable tbody th, table.dataTable tbody td {
+    vertical-align: middle;
+  }
+</style>
 </head>
 <body>
-  <div class="container">
-    <h2>🏃‍♂️ Running Dashboard</h2>
 
-    <!-- Data Table 1 -->
-    <section class="section">
-      <h4>Tuần hiện tại</h4>
-      <input
-        type="text"
-        id="dataFilter1"
-        class="form-control filter-input"
-        placeholder="Filter Data Tuần hiện tại..."
-      />
-      <div class="table-wrapper">
-        <table id="dataTableCurrentWeek" class="display" width="100%">
-          <caption>Athlete Activities</caption>
-        </table>
-      </div>
-      <button class="btn btn-secondary export-btn" onclick="exportTableToExcel('dataTableCurrentWeek')">
-        Export Excel
-      </button>
-    </section>
+<div class="container text-center">
+  <h2>🏃‍♂️ Running Dashboard</h2>
+</div>
 
-    <!-- Data Table 2 -->
-    <section class="section">
-      <h4>Tuần trước</h4>
-      <input
-        type="text"
-        id="dataFilter2"
-        class="form-control filter-input"
-        placeholder="Filter Data Tuần trước..."
-      />
-      <div class="table-wrapper">
-        <table id="dataTableLastWeek" class="display" width="100%">
-          <caption>Athlete Activities</caption>
-        </table>
-      </div>
-      <button class="btn btn-secondary export-btn" onclick="exportTableToExcel('dataTableLastWeek')">
-        Export Excel
-      </button>
-    </section>
-
-    <!-- Pivot Table 1 -->
-    <section class="section">
-      <h4>Pivot Table - Tuần hiện tại</h4>
-      <input
-        type="text"
-        id="pivotFilter1"
-        class="form-control filter-input"
-        placeholder="Filter Pivot Table Tuần hiện tại..."
-      />
-      <div id="pivotTableCurrentWeek"></div>
-      <button class="btn btn-secondary export-btn" onclick="exportPivot('pivotTableCurrentWeek')">
-        Export Excel
-      </button>
-    </section>
-
-    <!-- Pivot Table 2 -->
-    <section class="section">
-      <h4>Pivot Table - Tuần trước</h4>
-      <input
-        type="text"
-        id="pivotFilter2"
-        class="form-control filter-input"
-        placeholder="Filter Pivot Table 2..."
-      />
-      <div id="pivotTableLastWeek"></div>
-      <button class="btn btn-secondary export-btn" onclick="exportPivot('pivotTableLastWeek')">
-        Export Excel
-      </button>
-    </section>
-
+<!-- Data Table 1 -->
+<div class="section">
+  <h4>Data Current Week</h4>
+  <input type="text" id="dataFilter1" class="form-control filter-input" placeholder="Filter Data Current Week" />
+  <div class="table-wrapper">
+    <table id="dataTableCurrentWeek" class="display" style="width:100%">
+      <caption>Workout Records — Current Week</caption>
+      <thead></thead>
+      <tbody></tbody>
+    </table>
   </div>
+  <button class="btn btn-secondary btn-export" onclick="exportTableToExcel('dataTableCurrentWeek')">Export Excel</button>
+</div>
 
-  <script>
-    // YOUR Supabase API info here:
+<!-- Data Table 2 -->
+<div class="section">
+  <h4>Data Last Week</h4>
+  <input type="text" id="dataFilter2" class="form-control filter-input" placeholder="Filter Data Last Week" />
+  <div class="table-wrapper">
+    <table id="dataTableLastWeek" class="display" style="width:100%">
+      <caption>Workout Records — Last Week</caption>
+      <thead></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <button class="btn btn-secondary btn-export" onclick="exportTableToExcel('dataTableLastWeek')">Export Excel</button>
+</div>
+
+<!-- Pivot Table 1 -->
+<div class="section">
+  <h4>Pivot Table — Current Week</h4>
+  <input type="text" id="pivotFilter1" class="form-control filter-input" placeholder="Filter Pivot Table - Current Week" />
+  <div id="pivotTable1" class="pivot-container"></div>
+  <button class="btn btn-secondary btn-export" onclick="exportPivot('pivotTable1')">Export Excel</button>
+</div>
+
+<!-- Pivot Table 2 -->
+<div class="section">
+  <h4>Pivot Table — Last Week</h4>
+  <input type="text" id="pivotFilter2" class="form-control filter-input" placeholder="Filter Pivot Table — Last Week" />
+  <div id="pivotTable2" class="pivot-container"></div>
+  <button class="btn btn-secondary btn-export" onclick="exportPivot('pivotTable2')">Export Excel</button>
+</div>
+
+
+<script>
+  // TODO: Replace with your actual Supabase REST API endpoints and anon keys:
   const API1 = 'https://gunwsbbzgagizxxystdq.supabase.co/rest/v1/v_rrth_data_current_week?select=*';
   const API2 = 'https://gunwsbbzgagizxxystdq.supabase.co/rest/v1/v_rrth_data_last_week?select=*';
-  const API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1bndzYmJ6Z2FnaXp4eHlzdGRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1Nzk0MDYsImV4cCI6MjA2ODE1NTQwNn0.CIFTxv6lmDTGnSIu2IZcVfkPtGMc-r4c1pRm34Pkixo';
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1bndzYmJ6Z2FnaXp4eHlzdGRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1Nzk0MDYsImV4cCI6MjA2ODE1NTQwNn0.CIFTxv6lmDTGnSIu2IZcVfkPtGMc-r4c1pRm34Pkixo";
 
-    const HEADERS = {
-      apikey: API_KEY,
-      Authorization: "Bearer " + API_KEY,
-    };
+  const HEADERS = {
+    "apikey": SUPABASE_ANON_KEY,
+    "Authorization": "Bearer " + SUPABASE_ANON_KEY,
+    "Content-Type": "application/json"
+  };
 
-    // Fetch from Supabase
-    async function fetchData(url) {
-      try {
-        const res = await fetch(url, { headers: HEADERS });
-        if (!res.ok) throw new Error("Network response was not ok");
-        return await res.json();
-      } catch (e) {
-        alert("Fetch error: " + e.message);
-        return [];
+  async function fetchData(url) {
+    try {
+      const res = await fetch(url, { headers: HEADERS });
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      return await res.json();
+    } catch (e) {
+      console.error("Fetch error:", e);
+      return [];
+    }
+  }
+
+  function renderPivot(containerId, data) {
+    if (!data.length) {
+      document.getElementById(containerId).innerHTML = "<em>No data</em>";
+      return;
+    }
+    // Clear container before rendering
+    document.getElementById(containerId).innerHTML = "";
+    $("#" + containerId).pivotUI(data, {
+      rendererName: "Table",
+      rows: [],
+      cols: [],
+      unusedAttrsVertical: false,
+      onRefresh: function() {
+        // Clear filter input on refresh
+        const filterInput = containerId === "pivotTable1" ? "#pivotFilter1" : "#pivotFilter2";
+        $(filterInput).val("");
       }
-    }
-
-    // Render pivot table
-    function renderPivot(id, data) {
-      $("#" + id).pivotUI(data, {
-        rendererName: "Table",
-        width: "95%",
-        height: "40vh",
-      });
-    }
-
-    // Export pivot table to Excel
-    function exportPivot(id) {
-      const table = document.querySelector(`#${id} table`);
-      if (!table) {
-        alert("Pivot table not loaded yet.");
-        return;
-      }
-      const wb = XLSX.utils.table_to_book(table);
-      XLSX.writeFile(wb, id + ".xlsx");
-    }
-
-    // Render DataTable with filters and sorting
-    function renderDataTable(tableId, data) {
-      if (!data.length) return;
-
-      const cols = Object.keys(data[0]).map((k) => ({ title: k, data: k }));
-      const table = $(`#${tableId}`).DataTable({
-        data,
-        columns: cols,
-        destroy: true,
-        scrollY: "35vh",
-        scrollCollapse: true,
-        paging: false,
-        order: [],
-        dom: "rt", // Only table (no search/pagination controls)
-      });
-
-      // Filter input connected to table search
-      $(`#${tableId.replace("dataTable", "dataFilter")}`).off("keyup").on("keyup", function () {
-        table.search(this.value).draw();
-      });
-    }
-
-    // Export DataTable to Excel
-    function exportTableToExcel(tableId) {
-      const table = document.querySelector(`#${tableId}`);
-      if (!table) {
-        alert("Table not loaded yet.");
-        return;
-      }
-      const wb = XLSX.utils.table_to_book(table);
-      XLSX.writeFile(wb, tableId + ".xlsx");
-    }
-
-    async function initDashboard() {
-      const [data1, data2] = await Promise.all([fetchData(API1), fetchData(API2)]);
-
-      // Render pivot tables
-      renderPivot("pivotTableCurrentWeek", data1);
-      renderPivot("pivotTableLastWeek", data2);
-
-      // Render data tables
-      renderDataTable("dataTableCurrentWeek", data1);
-      renderDataTable("dataTableLastWeek", data2);
-    }
-
-    $(document).ready(() => {
-      initDashboard();
     });
-  </script>
+  }
+
+  // Filter pivot tables by keyword (simple substring filter)
+  function filterPivot(containerId, filterValue) {
+    const container = $("#" + containerId);
+    const tables = container.find("table.pvtTable");
+    tables.each(function() {
+      $(this).find("tbody tr").each(function() {
+        const rowText = $(this).text().toLowerCase();
+        $(this).toggle(rowText.indexOf(filterValue.toLowerCase()) !== -1);
+      });
+    });
+  }
+
+  function exportPivot(containerId) {
+    const table = document.querySelector(`#${containerId} table.pvtTable`);
+    if (!table) {
+      alert("Pivot table not ready.");
+      return;
+    }
+    const wb = XLSX.utils.table_to_book(table);
+    XLSX.writeFile(wb, containerId + ".xlsx");
+  }
+
+  // Render DataTables with row numbering and filtering
+  function renderDataTable(tableId, data) {
+    if (!data.length) {
+      $(`#${tableId}`).html("<caption>No data</caption>");
+      return;
+    }
+    const columns = Object.keys(data[0]).map(key => ({ title: key, data: key }));
+    // Add row number column at the start
+    columns.unshift({
+      title: "#",
+      data: null,
+      orderable: false,
+      searchable: false,
+      className: "dt-center",
+      render: (data, type, row, meta) => meta.row + 1
+    });
+
+    // Destroy existing table if present
+    if ($.fn.DataTable.isDataTable(`#${tableId}`)) {
+      $(`#${tableId}`).DataTable().clear().destroy();
+    }
+
+    const table = $(`#${tableId}`).DataTable({
+      data: data,
+      columns: columns,
+      scrollY: '40vh',
+      scrollCollapse: true,
+      paging: false,
+      order: [],
+      language: {
+        emptyTable: "No data available"
+      }
+    });
+
+    // Link filter input
+    const filterInputId = tableId === "dataTableCurrentWeek" ? "#dataFilter1" : "#dataFilter2";
+    $(filterInputId).off('keyup').on("keyup", function () {
+      table.search(this.value).draw();
+    });
+  }
+
+  function exportTableToExcel(tableId) {
+    const table = document.querySelector(`#${tableId}`);
+    if (!table) {
+      alert("Table not ready.");
+      return;
+    }
+    const wb = XLSX.utils.table_to_book(table);
+    XLSX.writeFile(wb, tableId + ".xlsx");
+  }
+
+  async function initialize() {
+    const [data1, data2] = await Promise.all([fetchData(API1), fetchData(API2)]);
+    renderPivot("pivotTable1", data1);
+    renderPivot("pivotTable2", data2);
+
+    renderDataTable("dataTableCurrentWeek", data1);
+    renderDataTable("dataTableLastWeek", data2);
+
+    // Filter pivot inputs - hook up keyup event
+    $("#pivotFilter1").on("keyup", function() {
+      filterPivot("pivotTable1", this.value);
+    });
+    $("#pivotFilter2").on("keyup", function() {
+      filterPivot("pivotTable2", this.value);
+    });
+  }
+
+  $(document).ready(() => {
+    initialize();
+  });
+</script>
+
 </body>
 </html>
