@@ -125,10 +125,25 @@
 </div>
 
 
+<!-- Data Table3 -->
+<div class="section">
+  <h4>Users</h4>
+  <input type="text" id="dataFilter3" class="form-control filter-input" placeholder="Filter Data Users" />
+  <div class="table-wrapper">
+    <table id="dataTableUsers" class="display" style="width:100%">
+      <caption>Users</caption>
+      <thead></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <button class="btn btn-secondary btn-export" onclick="exportTableToExcel('dataTableUsers')">Export Excel</button>
+</div>
+
 <script>
   // TODO: Replace with your actual Supabase REST API endpoints and anon keys:
   const API1 = 'https://gunwsbbzgagizxxystdq.supabase.co/rest/v1/v_rrth_data_current_week?select=*';
   const API2 = 'https://gunwsbbzgagizxxystdq.supabase.co/rest/v1/v_rrth_data_last_week?select=*';
+  const API3 = 'https://gunwsbbzgagizxxystdq.supabase.co/rest/v1/v_rrth_users?select=*';
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1bndzYmJ6Z2FnaXp4eHlzdGRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1Nzk0MDYsImV4cCI6MjA2ODE1NTQwNn0.CIFTxv6lmDTGnSIu2IZcVfkPtGMc-r4c1pRm34Pkixo";
 
   const HEADERS = {
@@ -242,12 +257,13 @@
   }
 
   async function initialize() {
-    const [data1, data2] = await Promise.all([fetchData(API1), fetchData(API2)]);
+    const [data1, data2, data3] = await Promise.all([fetchData(API1), fetchData(API2), fetchData(API3)]);
     renderPivot("pivotTable1", data1);
     renderPivot("pivotTable2", data2);
 
     renderDataTable("dataTableCurrentWeek", data1);
     renderDataTable("dataTableLastWeek", data2);
+	  renderDataTable("dataTableUsers", data3);
 
     // Filter pivot inputs - hook up keyup event
     $("#pivotFilter1").on("keyup", function() {
@@ -265,3 +281,4 @@
 
 </body>
 </html>
+
