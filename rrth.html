@@ -125,7 +125,7 @@
 </div>
 
 
-<!-- Data Table3 -->
+<!-- Data Table 2 -->
 <div class="section">
   <h4>Users</h4>
   <input type="text" id="dataFilter3" class="form-control filter-input" placeholder="Filter Data Users" />
@@ -195,7 +195,8 @@
     });
   }
 
-  function exportPivot(containerId) {
+
+function exportPivot(containerId) {
     const table = document.querySelector(`#${containerId} table.pvtTable`);
     if (!table) {
       alert("Pivot table not ready.");
@@ -203,10 +204,11 @@
     }
     const wb = XLSX.utils.table_to_book(table);
     XLSX.writeFile(wb, containerId + ".xlsx");
-  }
+}
 
-  // Render DataTables with row numbering and filtering
-  function renderDataTable(tableId, data) {
+
+
+function renderDataTable(tableId, data) {
     if (!data.length) {
       $(`#${tableId}`).html("<caption>No data</caption>");
       return;
@@ -244,9 +246,69 @@
     $(filterInputId).off('keyup').on("keyup", function () {
       table.search(this.value).draw();
     });
-  }
+}
 
-  function exportTableToExcel(tableId) {
+
+
+function renderDataTableUsers(tableId, data) {
+    if (!data.length) {
+      $(`#${tableId}`).html("<caption>No data</caption>");
+      return;
+    }
+    const columns = Object.keys(data[0]).map(key => ({ title: key, data: key }));
+    // Add row number column at the start
+    columns.unshift({
+      title: "#",
+      data: null,
+      orderable: false,
+      searchable: false,
+      className: "dt-center",
+      render: (data, type, row, meta) => meta.row + 1
+    });
+
+    // Destroy existing table if present
+    if ($.fn.DataTable.isDataTable(`#${tableId}`)) {
+      $(`#${tableId}`).DataTable().clear().destroy();
+    }
+
+    const table = $(`#${tableId}`).DataTable({
+      data: data,
+      columns: [
+			{
+			  title: "#",
+			  data: null,
+			  className: "text-center",
+			  render: function (data, type, row, meta) {
+				return meta.row + 1;   // số thứ tự
+			  }
+			},
+		  { data: "username", title: "username" },
+		  { data: "firstname", title: "firstname" },
+		  { data: "lastname", title: "lastname" },
+		  {
+			data: "link_strava",
+			title: "Strava Link",
+			render: function (data, type, row) {
+			  if (type === 'display') {
+				return `<a href="${data}" target="_blank" class="link-primary">${data}</a>`;
+			  }
+			  return data; // raw value
+			}
+		  }
+	  ],
+      scrollY: '40vh',
+      scrollCollapse: true,
+      paging: false,
+      order: [],
+      language: {
+        emptyTable: "No data available"
+      }
+    });
+
+}
+
+
+function exportTableToExcel(tableId) {
     const table = document.querySelector(`#${tableId}`);
     if (!table) {
       alert("Table not ready.");
@@ -254,16 +316,17 @@
     }
     const wb = XLSX.utils.table_to_book(table);
     XLSX.writeFile(wb, tableId + ".xlsx");
-  }
+}
 
-  async function initialize() {
+
+async function initialize() {
     const [data1, data2, data3] = await Promise.all([fetchData(API1), fetchData(API2), fetchData(API3)]);
     renderPivot("pivotTable1", data1);
     renderPivot("pivotTable2", data2);
 
     renderDataTable("dataTableCurrentWeek", data1);
     renderDataTable("dataTableLastWeek", data2);
-	  renderDataTable("dataTableUsers", data3);
+	renderDataTableUsers("dataTableUsers", data3);
 
     // Filter pivot inputs - hook up keyup event
     $("#pivotFilter1").on("keyup", function() {
@@ -272,11 +335,12 @@
     $("#pivotFilter2").on("keyup", function() {
       filterPivot("pivotTable2", this.value);
     });
-  }
+}
 
-  $(document).ready(() => {
+
+$(document).ready(() => {
     initialize();
-  });
+});
 </script>
 
 </body>
