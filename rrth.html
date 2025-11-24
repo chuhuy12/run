@@ -51,8 +51,8 @@
     overflow-y: auto;
   }
   .table-wrapper {
-    max-height: 40vh;
-    overflow-y: auto;
+    //max-height: 40vh;
+    //overflow-y: auto;
   }
   table caption {
     caption-side: top;
@@ -232,6 +232,9 @@ function renderDataTable(tableId, data) {
     const table = $(`#${tableId}`).DataTable({
       data: data,
       columns: columns,
+	  scrollX: true,
+	  autoWidth: false,
+	  fixedHeader: true,
       scrollY: '40vh',
       scrollCollapse: true,
       paging: false,
