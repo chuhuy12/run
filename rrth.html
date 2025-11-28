@@ -144,6 +144,7 @@
   const API1 = 'https://gunwsbbzgagizxxystdq.supabase.co/rest/v1/v_rrth_data_current_week?select=*';
   const API2 = 'https://gunwsbbzgagizxxystdq.supabase.co/rest/v1/v_rrth_data_last_week?select=*';
   const API3 = 'https://gunwsbbzgagizxxystdq.supabase.co/rest/v1/v_rrth_users?select=*';
+  const API4 = 'https://gunwsbbzgagizxxystdq.supabase.co/rest/v1/v_z_system_date?select=*';
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1bndzYmJ6Z2FnaXp4eHlzdGRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1Nzk0MDYsImV4cCI6MjA2ODE1NTQwNn0.CIFTxv6lmDTGnSIu2IZcVfkPtGMc-r4c1pRm34Pkixo";
 
   const HEADERS = {
@@ -323,13 +324,15 @@ function exportTableToExcel(tableId) {
 
 
 async function initialize() {
-    const [data1, data2, data3] = await Promise.all([fetchData(API1), fetchData(API2), fetchData(API3)]);
+    const [data1, data2, data3, data4] = await Promise.all([fetchData(API1), fetchData(API2), fetchData(API3), fetchData(API4)]);
     renderPivot("pivotTable1", data1);
     renderPivot("pivotTable2", data2);
 
     renderDataTable("dataTableCurrentWeek", data1);
     renderDataTable("dataTableLastWeek", data2);
 	renderDataTableUsers("dataTableUsers", data3);
+
+	$('#hLastUpdate').html('Last Update: ' + data4[0].SYSTEM_DATE);
 
     // Filter pivot inputs - hook up keyup event
     $("#pivotFilter1").on("keyup", function() {
@@ -348,4 +351,5 @@ $(document).ready(() => {
 
 </body>
 </html>
+
 
