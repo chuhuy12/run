@@ -81,7 +81,8 @@
 </div>
 
 <div class="section">
-  <h5 style="color:red; text-align:center;" id="hLastUpdate"></h5>
+  <h5 style="color:red; text-align:center;" id="hLastInsert"></h5>
+  <h6 style="color:red; text-align:center;" id="hLastUpdate"></h6>
 </div>
 
 <!-- Data Table 1 -->
@@ -336,7 +337,8 @@ async function initialize() {
     renderDataTable("dataTableLastWeek", data2);
 	renderDataTableUsers("dataTableUsers", data3);
 
-	$('#hLastUpdate').html('Last Update: ' + data4[0].SYSTEM_DATE);
+	$('#hLastInsert').html('Last Craw Data: ' + data4[0].SYSTEM_DATE);
+	$('#hLastUpdate').html('Last Update (Extra Info): ' + data4[0].LAST_UPDATE_OTHER_DATA);
 
     // Filter pivot inputs - hook up keyup event
     $("#pivotFilter1").on("keyup", function() {
