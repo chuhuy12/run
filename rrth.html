@@ -113,6 +113,20 @@
   <button class="btn btn-secondary btn-export" onclick="exportTableToExcel('dataTableLastWeek')">Export Excel</button>
 </div>
 
+<!-- Data Table 3 -->
+<div class="section">
+  <h4>Data Last 30 days</h4>
+  <input type="text" id="dataFilter3" class="form-control filter-input" placeholder="Filter Data Last 30 days" />
+  <div class="table-wrapper">
+    <table id="dataTableLast30Days" class="display" style="width:100%">
+      <caption>Workout Records — Last 30 days</caption>
+      <thead></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <button class="btn btn-secondary btn-export" onclick="exportTableToExcel('dataTableLast30Days')">Export Excel</button>
+</div>
+
 <!-- Pivot Table 1 -->
 <div class="section">
   <h4>Pivot Table — Current Week</h4>
@@ -148,6 +162,7 @@
   // TODO: Replace with your actual Supabase REST API endpoints and anon keys:
   const API1 = 'https://gunwsbbzgagizxxystdq.supabase.co/rest/v1/v_rrth_data_current_week?select=*';
   const API2 = 'https://gunwsbbzgagizxxystdq.supabase.co/rest/v1/v_rrth_data_last_week?select=*';
+  const APILast30Days = 'https://gunwsbbzgagizxxystdq.supabase.co/rest/v1/v_rrth_data_last_30days?select=*';
   const API3 = 'https://gunwsbbzgagizxxystdq.supabase.co/rest/v1/v_rrth_users?select=*';
   const API4 = 'https://gunwsbbzgagizxxystdq.supabase.co/rest/v1/v_z_system_date?select=*';
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1bndzYmJ6Z2FnaXp4eHlzdGRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1Nzk0MDYsImV4cCI6MjA2ODE1NTQwNn0.CIFTxv6lmDTGnSIu2IZcVfkPtGMc-r4c1pRm34Pkixo";
@@ -329,12 +344,13 @@ function exportTableToExcel(tableId) {
 
 
 async function initialize() {
-    const [data1, data2, data3, data4] = await Promise.all([fetchData(API1), fetchData(API2), fetchData(API3), fetchData(API4)]);
+    const [data1, data2, dataLast30Days, data3, data4] = await Promise.all([fetchData(API1), fetchData(API2), fetchData(APILast30Days), fetchData(API3), fetchData(API4)]);
     renderPivot("pivotTable1", data1);
     renderPivot("pivotTable2", data2);
 
     renderDataTable("dataTableCurrentWeek", data1);
     renderDataTable("dataTableLastWeek", data2);
+	renderDataTable("dataTableLast30Days", dataLast30Days);
 	renderDataTableUsers("dataTableUsers", data3);
 
 	$('#hLastInsert').html('Last Craw Data: ' + data4[0].SYSTEM_DATE);
